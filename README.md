@@ -8,7 +8,7 @@ Duckduckgo images wrapper for Deno
 import { search, SafetyLevels } from 'https://deno.land/x/ddgimages@v1.0.0/search.ts'
 
 const duck = await search('ducks')
-const nsfw = await search('hentai', SafetyLevels.STRICT), // doesn't throws any NSFW result
+const nsfw = await search('hentai', SafetyLevels.STRICT) // doesn't throws any NSFW result
 
 console.log(duck[0]?.image, nsfw[0]?.image)
 
