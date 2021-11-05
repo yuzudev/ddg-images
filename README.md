@@ -5,7 +5,7 @@ Duckduckgo images wrapper for Deno
 ### Usage
 
 ```ts
-import { search, SafetyLevels } from 'https://deno.land/x/ddgimages@v1.0.0/mod.ts'
+import { search, SafetyLevels } from 'https://deno.land/x/ddgimages@v1.1.1/mod.ts'
 
 const duck = await search('ducks')
 const nsfw = await search('hentai', SafetyLevels.STRICT) // doesn't throws any NSFW result
