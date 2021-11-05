@@ -1,1 +1,1 @@
-export * from "src/search.ts"
+export * from "./src/search.ts"
