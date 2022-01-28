@@ -1,10 +1,7 @@
-/*  this is from duckduckgo-images-api
-    I made a Deno version because is one of my dependencies on nodeJS
-    maybe one day this will be at github
+/*
+  this is from JorgePoblete/DuckDuckGoImages
+  **no dependencies!** just Deno
 */
-
-// if you are in nodeJS you can do something like import axios from 'axios'
-import axiod from "https://deno.land/x/axiod@0.23.1/mod.ts";
 
 /** the site url */
 export const url = "https://duckduckgo.com/";
@@ -34,69 +31,69 @@ export interface Result {
   source: string;
 }
 
+/** @private */
+const headers = {
+  "authority": "duckduckgo.com",
+  "accept": "application/json , text/javascript, */*; q=0.01",
+  "Content-Type": "application/json",
+  "sec-fetch-dest": "empty",
+  "x-requested-with": "XMLHttpRequest",
+  "user-agent":
+    "\
+            Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4)\
+            AppleWebKit/537.36 (KHTML, like Gecko)\
+            Chrome/80.0.3987.163 Safari/537.36\
+      ",
+  "sec-fetch-site": "same-origin",
+  "sec-fetch-mode": "cors",
+  "referer": "https://duckduckgo.com/",
+  "accept-language": "en-US,en;q=0.9",
+};
+
+/** @private */
+async function getToken(_keywords: string) {
+  const data = await fetch(`${url}?${serializeParams({ q: _keywords })}`, {
+    method: "GET",
+  }).then((r) => r.text());
+  // is this legal? idk
+  const token = data.match(/vqd=([\d-]+)\&/);
+  return token?.[1];
+}
+
+/** @private */
+function serializeParams(params: Record<string, string>) {
+  return Object.keys(params)
+    .map(
+      (key) => encodeURIComponent(key) + "=" + encodeURIComponent(params[key])
+    )
+    .join("&");
+}
+
 /** **NOTE:** the module is strict by default */
 export async function search(
-  keywords: string,
-  moderate: SafetyLevels = 1,
+  keywords: string | string[],
+  moderate: SafetyLevels = SafetyLevels.STRICT
 ): Promise<Result[]> {
-  // constants
-  const headers = {
-    "authority": "duckduckgo.com",
-    "accept": "application/json, text/javascript, */*; q=0.01",
-    "sec-fetch-dest": "empty",
-    "x-requested-with": "XMLHttpRequest",
-    "user-agent": "\
-              Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4)\
-              AppleWebKit/537.36 (KHTML, like Gecko)\
-              Chrome/80.0.3987.163 Safari/537.36\
-        ",
-    "sec-fetch-site": "same-origin",
-    "sec-fetch-mode": "cors",
-    "referer": "https://duckduckgo.com/",
-    "accept-language": "en-US,en;q=0.9",
-  };
-
-  const token = await getToken(keywords);
+  const token = await getToken(
+    typeof keywords === "string" ? keywords : keywords.join(" ")
+  );
 
   if (!token) {
     throw new Error("No token found");
   }
 
-  const params: Record<string, string> = {
-    "vqd": token,
-    "l": "us-en",
-    "f": ",,,",
-    "q": keywords,
-    "o": "json",
-    "p": "" + (moderate), // strict by  default
+  const params = {
+    vqd: token,
+    l: "us-en",
+    f: ",,,",
+    q: typeof keywords === "string" ? keywords : keywords.join(" "),
+    o: "json",
+    p: moderate /* number */
+      .toString(), // strict by  default
   };
 
-  // utilities
-  function getToken(_keywords: string): Promise<string | undefined> {
-    return new Promise((resolve, reject) => {
-      axiod.get<string>(url, {
-        params: {
-          q: _keywords,
-        },
-      })
-        .then(({ data }) => {
-          const token = data.match(/vqd=([\d-]+)\&/);
-          resolve(token?.[1]);
-        })
-        .catch(reject);
-    });
-  }
-
-  // get the image
-  return new Promise<Result[]>((resolve, reject) => {
-    axiod.get<{ results: Result[] }>(
-      url + "i.js",
-      {
-        params,
-        headers,
-      },
-    )
-      .then(({ data }) => resolve(data.results))
-      .catch(reject);
-  });
+  // get the image!
+  return fetch(url + "i.js" + `?${serializeParams(params)}`, { headers })
+    .then((data) => data.json())
+    .then((imgs) => imgs.results);
 }
