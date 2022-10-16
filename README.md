@@ -5,7 +5,7 @@ Duckduckgo images wrapper for Deno (no dependencies)
 ### Usage
 
 ```ts
-import { search, SafetyLevels } from "https://deno.land/x/ddgimages@v2.0.0/mod.ts"
+import { search, SafetyLevels } from "https://deno.land/x/ddgimages@v2.0.1/mod.ts"
 // Node: import { search, SafetyLevels } from "ddgimages-deno"
 
 // strict by default
